@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
  
 use Illuminate\Http\Request;
+use App\Models\Buku;
 use App\Http\Requests\StoreBukuRequest;
 use App\Http\Requests\UpdateBukuRequest;
-use App\Models\Buku;
+use App\Rules\KodeBukuFormat;
+use Illuminate\Validation\Rule;
  
 class BukuController extends Controller
 {
@@ -90,24 +92,58 @@ class BukuController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-   public function store(StoreBukuRequest $request)
+public function store(Request $request)
 {
-    try {
-        // Create buku baru dengan validated data
-        Buku::create($request->validated());
+    $validated = $request->validate([
+        'kode_buku' => ['required', 'string', 'unique:buku,kode_buku', new KodeBukuFormat],
+        'judul' => 'required|string|max:255',
+        'kategori' => 'required|string',
         
-        // Redirect dengan success message
-        return redirect()->route('buku.index')
-                         ->with('success', 'Buku berhasil ditambahkan!');
-                         
-    } catch (\Exception $e) {
-        // Redirect dengan error message jika gagal
-        return redirect()->back()
-                         ->withInput()
-                         ->with('error', 'Gagal menambahkan buku: ' . $e->getMessage());
+        // Conditional 1: Jika kategori "Programming", bahasa harus "Inggris"
+        'bahasa' => [
+            'required',
+            'string',
+            Rule::requiredIf($request->kategori === 'Programming' && $request->bahasa !== 'Inggris'),
+        ],
+        
+        'tahun_terbit' => 'required|integer|digits:4',
+        
+        // Conditional 2: Jika tahun terbit < 2000, stok maksimal 5
+        'stok' => [
+            'required',
+            'integer',
+            'min:0',
+            $request->tahun_terbit < 2000 ? 'max:5' : 'max:999'
+        ],
+        'pengarang' => 'required|string',
+        'penerbit' => 'required|string',
+        'harga' => 'required|numeric|min:0',
+    ], [
+        // Custom Error Messages Bahasa Indonesia
+        'required' => 'Kolom :attribute wajib diisi.',
+        'string' => 'Kolom :attribute harus berupa teks.',
+        'unique' => ':attribute sudah terdaftar di database.',
+        'integer' => 'Kolom :attribute harus berupa angka bulat.',
+        'digits' => 'Kolom :attribute harus berukuran :digits digit.',
+        'min' => 'Kolom :attribute minimal bernilai :min.',
+        'max' => 'Kolom :attribute maksimal bernilai :max.',
+        'numeric' => 'Kolom :attribute harus berupa angka.',
+    ]);
+
+    // Tambahan logika khusus untuk conditional Bahasa jika Programming
+    if ($request->kategori === 'Programming' && $request->bahasa !== 'Inggris') {
+        return back()->withErrors(['bahasa' => 'Jika kategori "Programming", maka bahasa harus "Inggris".'])->withInput();
     }
+    
+    // Tambahan logika jika tahun < 2000 dan stok > 5
+    if ($request->tahun_terbit < 2000 && $request->stok > 5) {
+        return back()->withErrors(['stok' => 'Buku lama (tahun < 2000) stok maksimal adalah 5 buku.'])->withInput();
+    }
+
+    // Kode untuk menyimpan ke database (Lanjutan Pertemuan 12)
+    // Buku::create($validated);
+    // return redirect()->route('buku.index')->with('success', 'Buku berhasil ditambahkan!');
 }
- 
     /**
      * Display the specified resource.
      */
@@ -179,5 +215,60 @@ class BukuController extends Controller
             'bukuHabis',
             'kategori'
         ));
+    }
+
+        public function bulkDelete(Request $request)
+    {
+        $ids = $request->buku_ids;
+        
+        if (!$ids || count($ids) === 0) {
+            return redirect()->route('buku.index')->with('error', 'Pilih minimal satu buku untuk dihapus!');
+        }
+
+        // Hapus semua data yang id-nya ada di dalam array $ids
+        Buku::whereIn('id', $ids)->delete();
+
+        return redirect()->route('buku.index')
+                        ->with('success', count($ids) . ' buku berhasil dihapus sekaligus!');
+    }
+
+        public function export()
+    {
+        $bukus = Buku::all();
+        
+        $filename = 'buku_' . date('Y-m-d_His') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+        
+        $callback = function() use ($bukus) {
+            $file = fopen('php://output', 'w');
+            
+            // Header Kolom CSV
+            fputcsv($file, [
+                'Kode Buku', 'Judul', 'Kategori', 'Pengarang', 
+                'Penerbit', 'Tahun', 'ISBN', 'Harga', 'Stok'
+            ]);
+            
+            // Mengisi Data Kolom CSV
+            foreach ($bukus as $buku) {
+                fputcsv($file, [
+                    $buku->kode_buku,
+                    $buku->judul,
+                    $buku->kategori,
+                    $buku->pengarang,
+                    $buku->penerbit,
+                    $buku->tahun_terbit,
+                    $buku->isbn,
+                    $buku->harga,
+                    $buku->stok,
+                ]);
+            }
+            
+            fclose($file);
+        };
+        
+        return response()->stream($callback, 200, $headers);
     }
 }

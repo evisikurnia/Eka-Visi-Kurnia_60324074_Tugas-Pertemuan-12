@@ -3,17 +3,22 @@
 @section('title', 'Daftar Buku')
  
 @section('content')
+{{-- 1. HEADER HALAMAN --}}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1>
-        <i class="bi bi-book"></i>
-        Daftar Buku
+        <i class="bi bi-book"></i> Daftar Buku
     </h1>
-    <a href="{{ route('buku.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i> Tambah Buku
-    </a>
+    <div>
+        <a href="{{ route('buku.export') }}" class="btn btn-success me-2">
+            <i class="bi bi-download"></i> Export CSV
+        </a>
+        <a href="{{ route('buku.create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Tambah Buku
+        </a>
+    </div>
 </div>
  
-{{-- Statistik Cards --}}
+{{-- 2. Statistik Cards --}}
 <div class="row mb-4">
     <div class="col-md-4">
         <div class="card border-primary">
@@ -46,8 +51,24 @@
             </div>
         </div>
     </div>
+
+        <div class="col-md-4">
+        <div class="card border-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Buku Habis</h6>
+                        <h2 class="mb-0">{{ $bukuHabis }}</h2>
+                    </div>
+                    <div class="text-danger">
+                        <i class="bi bi-x-circle-fill" style="font-size: 3rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     
-    {{-- FORM PENCARIAN & FILTER ADVANCED --}}
+    {{-- 3. FORM PENCARIAN & FILTER ADVANCED --}}
 <div class="card mb-4 border-0 shadow-sm">
     <div class="card-header bg-primary text-white py-3">
         <h5 class="card-title mb-0"><i class="bi bi-search"></i> Pencarian & Filter Advanced</h5>
@@ -105,25 +126,8 @@
         </form>
     </div>
 </div>
-
-    <div class="col-md-4">
-        <div class="card border-danger">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted mb-1">Buku Habis</h6>
-                        <h2 class="mb-0">{{ $bukuHabis }}</h2>
-                    </div>
-                    <div class="text-danger">
-                        <i class="bi bi-x-circle-fill" style="font-size: 3rem;"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
  
-{{-- Filter Kategori --}}
+{{-- 4. Filter Kategori --}}
 <div class="card mb-4">
     <div class="card-body">
         <h6 class="card-title">
@@ -152,8 +156,29 @@
     </div>
 </div>
  
-{{-- Daftar Buku --}}
+{{-- 5. FORM BULK DELETE (Buka di sini) --}}
+<form action="{{ route('buku.bulk-delete') }}" method="POST" id="form-bulk-delete">
+    @csrf
+
+    {{-- Tombol Aksi Masal & Checkbox Select All --}}
+    <div class="d-flex align-items-center gap-3 mb-3">
+        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Hapus semua buku yang dipilih?')">
+            <i class="bi bi-trash-fill"></i> Hapus yang Dipilih
+        </button>
+        
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="select-all">
+            <label class="form-check-label fw-bold" for="select-all">
+                Pilih Semua Buku
+            </label>
+        </div>
+    </div>
+
+{{-- 6. Daftar Buku --}}
 @forelse ($bukus as $buku)
+<div class="form-check mb-2">
+    <input class="form-check-input row-checkbox" type="checkbox" name="buku_ids[]" value="{{ $buku->id }}">
+</div>
     <div class="card mb-3">
         <div class="card-body">
             <div class="row">
@@ -233,7 +258,9 @@
         @endisset
     </div>
 @endforelse
- 
+
+</form>
+
 @if ($bukus->count() > 0)
     <div class="text-center mt-4">
         <p class="text-muted">
@@ -253,3 +280,65 @@
 @empty
     <div class="alert alert-info">Tidak ada data buku</div>
 @endforelse
+
+{{-- Delete Button dengan SweetAlert --}}
+<form action="{{ route('buku.destroy', $buku->id) }}" 
+      method="POST" 
+      class="d-inline delete-form">
+    @csrf
+    @method('DELETE')
+    <button type="button" class="btn btn-sm btn-danger w-100 btn-delete" 
+            data-judul="{{ $buku->judul }}">
+        <i class="bi bi-trash"></i> Hapus
+    </button>
+</form>
+ 
+@push('scripts')
+<script>
+    // SweetAlert confirmation untuk delete
+    document.querySelectorAll('.btn-delete').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const form = this.closest('form');
+            const judul = this.getAttribute('data-judul');
+            
+            Swal.fire({
+                title: 'Konfirmasi Hapus',
+                text: `Apakah Anda yakin ingin menghapus buku "${judul}"?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+    });
+</script>
+
+<script>
+    // Loading state saat submit form
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function() {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn && !this.classList.contains('delete-form')) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...';
+            }
+        });
+    });
+</script>
+
+<script>
+    // Fitur Select All Checkbox
+    document.getElementById('select-all').addEventListener('change', function() {
+        document.querySelectorAll('.row-checkbox').forEach(cb => {
+            cb.checked = this.checked;
+        });
+    });
+</script>
+@endpush
