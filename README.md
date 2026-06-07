@@ -39,13 +39,20 @@ resources/
     │   └── navbar.blade.php
     ├── partials/
     └── home.blade.php
+```
+---
 
 ## Cara Menjalankan Proyek Lokal
+
 1. Clone repository ini atau download zip.
 2. Pastikan XAMPP (Apache & MySQL) sudah aktif.
 3. Jalankan migrasi database di terminal:
    ```bash
    php artisan migrate
-4. Bukti Server Berjalan
+4. Jalankan server lokal:
+   ```bash
+   php artisan serve
+   ```
+   Bukti server berjalan
 ![Server Terbuka](dokumentasi/Tugas%2012.1.png)
 ![Server Terbuka](dokumentasi/Tugas%2012.2.png)
