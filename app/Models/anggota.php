@@ -58,6 +58,7 @@ class Anggota extends Model
      */
     public function getLamaAnggotaAttribute(): int
     {
+        if (!$this->tanggal_daftar) return 0;
         return Carbon::parse($this->tanggal_daftar)->diffInDays(now());
     }
  

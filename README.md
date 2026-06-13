@@ -1,44 +1,56 @@
-# Sistem Manajemen Perpustakaan - Laravel 12
+# Sistem Manajemen Perpustakaan - Modul Anggota
  **Nama:** Eka Visi Kurnia
  
  **NIM:** 60324074
 
-Aplikasi Sistem Manajemen Perpustakaan modern yang dibangun menggunakan **Laravel 12**, **Bootstrap 5**, dan **SweetAlert2**. Proyek ini mencakup arsitektur layout master, pengelolaan data buku & anggota, validasi tingkat lanjut, serta fitur operasional esensial perpustakaan.
+Proyek ini adalah implementasi sistem manajemen perpustakaan berbasis web menggunakan **Laravel 12** dan **PHP 8.2**. Dokumentasi ini berfokus pada pengerjaan **Praktikum 4 & 5 (Form Request, Validation, CRUD)** serta penyelesaian **Tugas Akhir Modul Anggota** (Auto-Generate Code, Export Excel, dan Advanced Search/Filter).
 
 ---
 
 ## Fitur Utama
 
-* **Blade Layouting Master**: Sistem templating yang terstruktur rapi memisahkan `layouts`, `partials`, dan komponen halaman anak (`home`, `buku`, `anggota`).
-* **UI/UX Modern Enhancement**:
-    * Konfirmasi hapus interaktif menggunakan **SweetAlert2**.
-    * *Loading state* otomatis (efek spinner & disable button) saat submit form untuk mencegah *double submit*.
-    * *Auto-hide flash messages* (alert sukses/gagal otomatis memudar setelah 5 detik).
-* **Advanced Validation Rules** (Tugas 1):
-    * *Custom Rule* format Kode Buku khusus (`BK-[KATEGORI]-[NOMOR]`, contoh: `BK-PROG-001`).
-    * Validasi Bersyarat (*Conditional Validation*): Jika kategori adalah "Programming", bahasa buku wajib "Inggris". Jika tahun terbit < 2000, stok maksimal dibatasi hanya 5 buku.
-    * Seluruh pesan error divalidasi penuh dalam **Bahasa Indonesia**.
-* **Bulk Delete Operations** (Tugas 2): Fitur hapus masal banyak data buku sekaligus memanfaatkan checkbox *Select All* interaktif.
-* **Export Data to CSV** (Tugas 3): Fitur mengunduh seluruh data koleksi buku ke dalam file spreadsheet format `.csv` secara langsung melalui *Data Stream*.
+### 1. Manajemen Anggota (CRUD Lengkap)
+* **Create**: Pendaftaran anggota baru dengan validasi berlapis menggunakan *Form Request*.
+* **Read**: Menampilkan daftar anggota, ringkasan statistik (Total, Aktif, Nonaktif), serta halaman detail tiap anggota.
+* **Update**: Memperbarui data anggota dengan validasi adaptif (mengabaikan pengecekan *unique* untuk ID data yang sedang di-edit).
+* **Delete**: Penghapusan data anggota yang aman berbasis penanganan eksepsi (`try-catch`) dan konfirmasi aksi.
+
+### 2. Fitur Tugas Khusus
+* **Auto-Generate Kode Anggota (Tugas 1 - 30%)**: Sistem secara otomatis mengenerate kode dengan format `AGT-[TAHUN]-[NOMOR_URUT]` (Contoh: `AGT-2026-001`) saat form pendaftaran dibuka, dikunci dengan atribut `readonly`.
+* **Export Data ke Excel (Tugas 2 - 40%)**: Fitur mengunduh seluruh data anggota secara instan ke format `.xlsx` menggunakan package `maatwebsite/excel`.
+* **Advanced Search & Filter (Tugas 3 - 30%)**: Pencarian dinamis multi-variabel berdasarkan kombinasi kata kunci (Nama/Email/Telepon), Jenis Kelamin, Status, dan Jenis Pekerjaan.
+
+---
+
+## 💻 Tech Stack & Kebutuhan Sistem
+
+* **Framework**: Laravel 12.x
+* **Bahasa Pemrograman**: PHP 8.2.x
+* **Ekstensi PHP**: `gd` (Wajib diaktifkan untuk fitur Export Excel)
+* **Database**: MySQL / MariaDB
+* **UI/UX Library**: Bootstrap 5, Bootstrap Icons, Flatpickr (Date Picker)
 
 ---
 
 ## Arsitektur Folder Views
 
 ```text
-resources/
-└── views/
-    ├── anggota/
-    │   └── index.blade.php
-    ├── buku/
-    │   ├── index.blade.php
-    │   └── show.blade.php
-    ├── layouts/
-    │   ├── app.blade.php
-    │   ├── footer.blade.php
-    │   └── navbar.blade.php
-    ├── partials/
-    └── home.blade.php
+resources/views/
+├── anggota/
+│   ├── create.blade.php
+│   ├── edit.blade.php
+│   ├── index.blade.php
+│   └── show.blade.php
+├── buku/
+│   ├── create.blade.php
+│   ├── edit.blade.php
+│   ├── index.blade.php
+│   └── show.blade.php
+├── components/
+│   └── buku-card.blade.php
+└── layouts/
+    ├── app.blade.php
+    └── footer.blade.php
 ```
 ---
 
@@ -54,5 +66,17 @@ resources/
    php artisan serve
    ```
    Bukti server berjalan
-![Server Terbuka](dokumentasi/Tugas%2012.1.png)
-![Server Terbuka](dokumentasi/Tugas%2012.2.png)
+![Server Terbuka](dokumentasi/Tugas%2013.png)
+
+---
+
+## Dokumentasi Tugas 13
+* **Form Tambah Anggota & Auto-Generate Code**
+Kode anggota otomatis dibuat secara berurutan oleh sistem berdasarkan tahun pendaftaran saat ini.
+<img src="dokumentasi/Tugas 13.1.png" width="100%" />
+* **Fitur Export Excel Berhasil**
+Data berhasil ditarik dan diunduh ke dalam berkas spreadsheet (.xlsx).
+<img src="dokumentasi/Tugas 13.2.png" width="100%" />
+* **Halaman Utama & Fitur Advanced Search**
+Form pencarian multi-kolom memudahkan pencarian data anggota secara spesifik beserta pembaruan kartu statistik secara real-time.
+<img src="dokumentasi/Tugas 13.3.png" width="100%" />

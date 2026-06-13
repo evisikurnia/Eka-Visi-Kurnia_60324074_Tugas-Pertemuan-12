@@ -137,13 +137,13 @@
 </div>
 
 {{-- Delete Button dengan SweetAlert --}}
-<form action="{{ route('buku.destroy', $buku->id) }}" 
+<form action="{{ route('anggota.destroy', $anggota->id) }}" 
       method="POST" 
       class="d-inline delete-form">
     @csrf
     @method('DELETE')
     <button type="button" class="btn btn-sm btn-danger w-100 btn-delete" 
-            data-judul="{{ $buku->judul }}">
+            data-judul="{{ $anggota->nama }}">
         <i class="bi bi-trash"></i> Hapus
     </button>
 </form>
@@ -159,7 +159,7 @@
             
             Swal.fire({
                 title: 'Konfirmasi Hapus',
-                text: `Apakah Anda yakin ingin menghapus buku "${judul}"?`,
+                text: `Apakah Anda yakin ingin menghapus anggota "${judul}"?`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',

@@ -28,8 +28,9 @@ Route::get('/buku/kategori/{kategori}', [BukuController::class, 'filterKategori'
      ->name('buku.kategori');
  
 // Resource route untuk Anggota (akan dibuat nanti)
+Route::get('anggota/export', [AnggotaController::class, 'export'])->name('anggota.export');
+Route::get('anggota/search', [AnggotaController::class, 'search'])->name('anggota.search');
 Route::resource('anggota', AnggotaController::class);
-
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 // // List all buku
 // Route::get('/buku', function () {
