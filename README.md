@@ -70,7 +70,7 @@ resources/views/
 
 ---
 
-## Dokumentasi Tugas 13
+## Dokumentasi Tugas 12
 * **Form Tambah Anggota & Auto-Generate Code**
 Kode anggota otomatis dibuat secara berurutan oleh sistem berdasarkan tahun pendaftaran saat ini.
 <img src="dokumentasi/Tugas 13.1.png" width="100%" />
